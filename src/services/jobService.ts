@@ -114,40 +114,43 @@ const fetchJobCount = async () => {
   }
 };
 
+// Updated function to use the Scrapingdog API for LinkedIn jobs
 const fetchJobsFromApi = async (): Promise<Job[]> => {
   try {
-    const apiKey = "YOUR_PROXYCURL_API_KEY";
-    const url = "https://nubela.co/proxycurl/api/linkedin/jobs";
+    const apiKey = "67e995644cb9f6e2991b9919"; // Scrapingdog API key
+    const url = "https://api.scrapingdog.com/linkedinjobs/";
     
     const response = await axios.get(url, {
       params: {
-        keywords: "associate software engineer",
-        location: "India",
-        time_posted: "24h"
-      },
-      headers: {
-        "Authorization": `Bearer ${apiKey}`
+        api_key: apiKey,
+        field: "associate software engineer",
+        geoid: "102713980", // India
+        page: 1,
+        sortBy: "day",
+        jobType: "full_time",
+        expLevel: "entry_level"
       }
     });
 
-    if (response.data && Array.isArray(response.data.jobs)) {
-      return response.data.jobs.map((job: any) => ({
-        id: job.job_id || String(Math.random()),
-        title: job.job_title || "Unknown Position",
-        company: job.company_name || "Unknown Company",
+    if (response.status === 200 && Array.isArray(response.data)) {
+      console.log("ScrapingDog API Response:", response.data);
+      return response.data.map((job: any) => ({
+        id: job.jobId || String(Math.random()),
+        title: job.jobTitle || "Unknown Position",
+        company: job.companyName || "Unknown Company",
         location: job.location || "Location not specified",
         description: job.description || "No description available",
-        postedAt: new Date(job.posted_time_friendly || Date.now()),
-        logoUrl: job.company_logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name || 'Company')}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=fff`,
-        applyUrl: job.apply_link || "#",
-        sourceUrl: buildLinkedInJobSearchUrl("associate software engineer") // Use the LinkedIn search URL
+        postedAt: new Date(job.postedDate || Date.now()),
+        logoUrl: job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'Company')}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=fff`,
+        applyUrl: job.jobUrl || "#",
+        sourceUrl: job.jobUrl || buildLinkedInJobSearchUrl("associate software engineer")
       }));
     }
     
-    console.error("Invalid response format from Proxycurl API");
+    console.error("Invalid response format from Scrapingdog API");
     return [];
   } catch (error) {
-    console.error("Error fetching jobs from Proxycurl API:", error);
+    console.error("Error fetching jobs from Scrapingdog API:", error);
     return [];
   }
 };
@@ -163,7 +166,7 @@ export function useJobs() {
     setLoading(true);
     setError(null);
     try {
-      console.log("Fetching jobs from Proxycurl API...");
+      console.log("Fetching jobs from Scrapingdog API...");
       const apiJobs = await fetchJobsFromApi();
       
       // Try to fetch job count
@@ -171,14 +174,18 @@ export function useJobs() {
         const countData = await fetchJobCount();
         if (countData && typeof countData.count === 'number') {
           setJobCount(countData.count);
+        } else {
+          // If job count API fails, set the count to the number of jobs retrieved
+          setJobCount(apiJobs.length);
         }
       } catch (countError) {
         console.error("Error fetching job count:", countError);
+        setJobCount(apiJobs.length);
       }
       
       if (apiJobs.length > 0) {
-        setJobs(prevJobs => [...apiJobs, ...prevJobs].slice(0, 20));
-        console.log(`Added ${apiJobs.length} new jobs from Proxycurl API`);
+        setJobs(apiJobs);
+        console.log(`Added ${apiJobs.length} new jobs from Scrapingdog API`);
       } else {
         const simulatedJobs = await fetchNewJobs();
         setJobs(prevJobs => [...simulatedJobs, ...prevJobs].slice(0, 20));
