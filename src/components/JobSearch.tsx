@@ -17,11 +17,12 @@ interface JobSearchProps {
 
 const JobSearch: React.FC<JobSearchProps> = ({ onSearch }) => {
   const [searchText, setSearchText] = useState('');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState('any');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(searchText, location);
+    // Pass empty string for "any" location to maintain the existing filtering logic
+    onSearch(searchText, location === 'any' ? '' : location);
   };
 
   return (
@@ -42,7 +43,7 @@ const JobSearch: React.FC<JobSearchProps> = ({ onSearch }) => {
             <SelectValue placeholder="Any Location" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Any Location</SelectItem>
+            <SelectItem value="any">Any Location</SelectItem>
             <SelectItem value="Hyderabad">Hyderabad</SelectItem>
             <SelectItem value="Bengaluru">Bengaluru</SelectItem>
             <SelectItem value="Chennai">Chennai</SelectItem>
