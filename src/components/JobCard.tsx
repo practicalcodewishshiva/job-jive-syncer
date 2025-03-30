@@ -2,7 +2,7 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Job } from '@/services/jobService';
-import { Calendar, MapPin, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
@@ -43,12 +43,20 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
           </p>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col space-y-2">
         <Button asChild className="w-full" variant="default">
           <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
             Apply Now <ExternalLink className="ml-2 h-4 w-4" />
           </a>
         </Button>
+        
+        {job.sourceUrl && (
+          <Button asChild className="w-full" variant="outline">
+            <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+              View on LinkedIn <Linkedin className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

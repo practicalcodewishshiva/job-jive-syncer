@@ -1,4 +1,3 @@
-
 // Simulated job data service (since direct LinkedIn scraping requires authorization)
 import { useState, useEffect } from 'react';
 
@@ -11,29 +10,32 @@ export interface Job {
   postedAt: Date;
   logoUrl: string;
   applyUrl: string;
+  sourceUrl?: string; // Add source URL field
 }
 
-// Sample job data (in a real app, this would come from an API)
+// Sample job data (in a real app, this would come from LinkedIn API)
 const SAMPLE_JOBS: Job[] = [
   {
     id: "1",
-    title: "Senior React Developer",
+    title: "Associate Software Engineer",
     company: "Techno Solutions",
     location: "Hyderabad, Telangana",
-    description: "Looking for an experienced React developer to join our growing team. Must have 3+ years of experience with React and TypeScript.",
+    description: "Looking for an Associate Software Engineer proficient in React.js and TypeScript. Great opportunity for freshers with strong fundamentals.",
     postedAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     logoUrl: "https://ui-avatars.com/api/?name=Techno+Solutions&background=0D8ABC&color=fff",
-    applyUrl: "https://example.com/apply/1"
+    applyUrl: "https://example.com/apply/1",
+    sourceUrl: "https://www.linkedin.com/jobs/view/4161413548"
   },
   {
     id: "2",
-    title: "Frontend Engineer",
+    title: "Junior Frontend Developer",
     company: "Global Systems",
     location: "Bengaluru, Karnataka",
-    description: "Join our team to build beautiful and responsive web interfaces. Experience with React, Redux, and CSS-in-JS is required.",
+    description: "Exciting opportunity for a Junior Frontend Developer with 0-2 years of experience. Knowledge of React.js and CSS frameworks required.",
     postedAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
     logoUrl: "https://ui-avatars.com/api/?name=Global+Systems&background=2563EB&color=fff",
-    applyUrl: "https://example.com/apply/2"
+    applyUrl: "https://example.com/apply/2",
+    sourceUrl: "https://www.linkedin.com/jobs/view/3578941267"
   },
   {
     id: "3",
@@ -77,7 +79,7 @@ const SAMPLE_JOBS: Job[] = [
   }
 ];
 
-// This function simulates fetching new jobs
+// This function simulates fetching new jobs from LinkedIn
 const fetchNewJobs = (): Promise<Job[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -85,7 +87,7 @@ const fetchNewJobs = (): Promise<Job[]> => {
       const numberOfNewJobs = Math.floor(Math.random() * 3) + 1;
       const companyNames = ["TechGrow", "Skynet Solutions", "Digital Wizards", "Code Masters", "Web Experts"];
       const locations = ["Hyderabad", "Bengaluru", "Chennai", "Delhi", "Mumbai", "Remote"];
-      const jobTitles = ["React Developer", "Frontend Engineer", "Full Stack Developer", "UI/UX Designer", "JavaScript Engineer"];
+      const jobTitles = ["Associate Software Engineer", "React Developer", "Frontend Engineer", "Junior Developer", "Software Engineer Trainee"];
       
       const newJobs: Job[] = [];
       
@@ -93,16 +95,18 @@ const fetchNewJobs = (): Promise<Job[]> => {
         const randomCompany = companyNames[Math.floor(Math.random() * companyNames.length)];
         const randomLocation = locations[Math.floor(Math.random() * locations.length)];
         const randomTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
+        const jobId = Date.now() + "-" + i;
         
         newJobs.push({
-          id: Date.now() + "-" + i,
+          id: jobId,
           title: randomTitle,
           company: randomCompany,
           location: `${randomLocation}, India`,
           description: `We're looking for a talented ${randomTitle} to join our team. Great opportunity to grow and learn!`,
           postedAt: new Date(),
           logoUrl: `https://ui-avatars.com/api/?name=${randomCompany.replace(/ /g, "+")}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=fff`,
-          applyUrl: `https://example.com/apply/${Date.now()}-${i}`
+          applyUrl: `https://example.com/apply/${jobId}`,
+          sourceUrl: `https://www.linkedin.com/jobs/view/${Math.floor(Math.random() * 10000000000)}`
         });
       }
       
@@ -119,11 +123,11 @@ export function useJobs() {
   const refreshJobs = async () => {
     setLoading(true);
     try {
-      console.log("Fetching new jobs...");
+      console.log("Fetching new jobs from simulated LinkedIn API...");
       const newJobs = await fetchNewJobs();
       setJobs(prevJobs => [...newJobs, ...prevJobs].slice(0, 20)); // Keep latest 20 jobs
       setLastUpdated(new Date());
-      console.log(`Added ${newJobs.length} new jobs`);
+      console.log(`Added ${newJobs.length} new jobs from simulated LinkedIn API`);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     } finally {
@@ -131,7 +135,6 @@ export function useJobs() {
     }
   };
 
-  // Initially load jobs
   useEffect(() => {
     // Set up the 5-minute interval for refreshing jobs
     const intervalId = setInterval(() => {
