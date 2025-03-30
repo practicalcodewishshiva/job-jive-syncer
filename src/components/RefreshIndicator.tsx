@@ -2,18 +2,20 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Linkedin } from 'lucide-react';
+import { RefreshCw, Linkedin, AlertCircle } from 'lucide-react';
 
 interface RefreshIndicatorProps {
   lastUpdated: Date;
   loading: boolean;
   onRefresh: () => void;
+  error?: string | null;
 }
 
 const RefreshIndicator: React.FC<RefreshIndicatorProps> = ({
   lastUpdated,
   loading,
   onRefresh,
+  error
 }) => {
   const timeAgo = formatDistanceToNow(lastUpdated, { addSuffix: true });
 
@@ -24,6 +26,12 @@ const RefreshIndicator: React.FC<RefreshIndicatorProps> = ({
         <p className="text-sm text-muted-foreground">
           LinkedIn jobs updated: {timeAgo}
         </p>
+        {error && (
+          <div className="flex items-center ml-3 text-yellow-600">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            <span className="text-xs">{error}</span>
+          </div>
+        )}
       </div>
       <Button 
         variant="outline" 

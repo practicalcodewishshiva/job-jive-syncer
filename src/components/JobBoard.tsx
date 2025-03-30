@@ -7,7 +7,7 @@ import RefreshIndicator from './RefreshIndicator';
 import { useToast } from '@/components/ui/use-toast';
 
 const JobBoard: React.FC = () => {
-  const { jobs, loading, lastUpdated, refreshJobs } = useJobs();
+  const { jobs, loading, lastUpdated, refreshJobs, error } = useJobs();
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
   const { toast } = useToast();
   
@@ -63,7 +63,8 @@ const JobBoard: React.FC = () => {
       <RefreshIndicator 
         lastUpdated={lastUpdated} 
         loading={loading} 
-        onRefresh={handleRefresh} 
+        onRefresh={handleRefresh}
+        error={error}
       />
       
       {loading && filteredJobs.length === 0 ? (
