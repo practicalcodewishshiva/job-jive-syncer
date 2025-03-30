@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -78,6 +79,41 @@ const SAMPLE_JOBS: Job[] = [
   }
 ];
 
+// New function to build LinkedIn job search URL with parameters
+const buildLinkedInJobSearchUrl = (keywords: string, timeFilter: string = 'r86400') => {
+  const encodedKeywords = encodeURIComponent(keywords);
+  return `https://www.linkedin.com/jobs/search/?f_TPR=${timeFilter}&keywords=${encodedKeywords}&origin=JOB_SEARCH_PAGE_JOB_FILTER`;
+};
+
+// Function to fetch job count using the API endpoint
+const fetchJobCount = async () => {
+  try {
+    const apiKey = "YOUR_API_KEY";
+    const baseUrl = "https://api.example.com"; // Replace with actual base URL
+    const url = `${baseUrl}/api/v2/linkedin/company/job/count`;
+    
+    const response = await axios.get(url, {
+      params: {
+        job_type: "entry_level",
+        experience_level: "entry_level",
+        when: "past-month",
+        flexibility: "remote",
+        geo_id: "92000000",
+        keyword: "software engineer",
+        search_id: "1035"
+      },
+      headers: {
+        "Authorization": `Bearer ${apiKey}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching job count:", error);
+    return { count: 0 };
+  }
+};
+
 const fetchJobsFromApi = async (): Promise<Job[]> => {
   try {
     const apiKey = "YOUR_PROXYCURL_API_KEY";
@@ -104,7 +140,7 @@ const fetchJobsFromApi = async (): Promise<Job[]> => {
         postedAt: new Date(job.posted_time_friendly || Date.now()),
         logoUrl: job.company_logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name || 'Company')}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=fff`,
         applyUrl: job.apply_link || "#",
-        sourceUrl: job.job_url || undefined
+        sourceUrl: buildLinkedInJobSearchUrl("associate software engineer") // Use the LinkedIn search URL
       }));
     }
     
@@ -121,6 +157,7 @@ export function useJobs() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [error, setError] = useState<string | null>(null);
+  const [jobCount, setJobCount] = useState<number>(0);
 
   const refreshJobs = async () => {
     setLoading(true);
@@ -128,6 +165,16 @@ export function useJobs() {
     try {
       console.log("Fetching jobs from Proxycurl API...");
       const apiJobs = await fetchJobsFromApi();
+      
+      // Try to fetch job count
+      try {
+        const countData = await fetchJobCount();
+        if (countData && typeof countData.count === 'number') {
+          setJobCount(countData.count);
+        }
+      } catch (countError) {
+        console.error("Error fetching job count:", countError);
+      }
       
       if (apiJobs.length > 0) {
         setJobs(prevJobs => [...apiJobs, ...prevJobs].slice(0, 20));
@@ -172,7 +219,7 @@ export function useJobs() {
             postedAt: new Date(),
             logoUrl: `https://ui-avatars.com/api/?name=${randomCompany.replace(/ /g, "+")}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=fff`,
             applyUrl: `https://example.com/apply/${jobId}`,
-            sourceUrl: `https://www.linkedin.com/jobs/view/${Math.floor(Math.random() * 10000000000)}`
+            sourceUrl: buildLinkedInJobSearchUrl(randomTitle) // Use the LinkedIn search URL
           });
         }
         
@@ -191,5 +238,5 @@ export function useJobs() {
     return () => clearInterval(intervalId);
   }, []);
 
-  return { jobs, loading, lastUpdated, refreshJobs, error };
+  return { jobs, loading, lastUpdated, refreshJobs, error, jobCount };
 }
